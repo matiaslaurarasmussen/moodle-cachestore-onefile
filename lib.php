@@ -521,19 +521,6 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
     public static function config_get_configuration_array($data) {
         $config = array();
 
-        if (isset($data->path)) {
-            $config['path'] = $data->path;
-        }
-        if (isset($data->autocreate)) {
-            $config['autocreate'] = $data->autocreate;
-        }
-        if (isset($data->singledirectory)) {
-            $config['singledirectory'] = $data->singledirectory;
-        }
-        if (isset($data->prescan)) {
-            $config['prescan'] = $data->prescan;
-        }
-
         return $config;
     }
 
@@ -545,18 +532,6 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      */
     public static function config_set_edit_form_data(moodleform $editform, array $config) {
         $data = array();
-        if (!empty($config['path'])) {
-            $data['path'] = $config['path'];
-        }
-        if (isset($config['autocreate'])) {
-            $data['autocreate'] = (bool)$config['autocreate'];
-        }
-        if (isset($config['singledirectory'])) {
-            $data['singledirectory'] = (bool)$config['singledirectory'];
-        }
-        if (isset($config['prescan'])) {
-            $data['prescan'] = (bool)$config['prescan'];
-        }
         $editform->set_data($data);
     }
 
