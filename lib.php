@@ -20,9 +20,15 @@
  *      autocreate:     true, false
  *      prescan:        true, false
  *
- * @copyright  2012 Sam Hemelryk
+ * @copyright  2013 Matias Rasmussen
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+
+require_once("helpers.php");
+
+
+
 class cachestore_onefile extends cache_store implements cache_is_key_aware, cache_is_configurable, cache_is_searchable  {
 
     /**
@@ -128,40 +134,15 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
         }
 
         $this->name = $name;
-        if (array_key_exists('path', $configuration) && $configuration['path'] !== '') {
-            $this->custompath = true;
-            $this->autocreate = !empty($configuration['autocreate']);
-            $path = (string)$configuration['path'];
-            if (!is_dir($path)) {
-                if ($this->autocreate) {
-                    if (!make_writable_directory($path, false)) {
-                        $path = false;
-                        debugging('Error trying to autocreate file store path. '.$path, DEBUG_DEVELOPER);
-                    }
-                } else {
-                    $path = false;
-                    debugging('The given file cache store path does not exist. '.$path, DEBUG_DEVELOPER);
-                }
-            }
-            if ($path !== false && !is_writable($path)) {
-                $path = false;
-                debugging('The file cache store path is not writable for `'.$name.'`', DEBUG_DEVELOPER);
-            }
-        } else {
-            $path = make_cache_directory('cachestore_onefile/'.preg_replace('#[^a-zA-Z0-9\.\-_]+#', '', $name));
-        }
-        $this->isready = $path !== false;
+        
+	$path = make_cache_directory('cachestore_onefile/'.preg_replace('#[^a-zA-Z0-9\.\-_]+#', '', $name));
+        
+	$this->isready = $path !== false;
         $this->filestorepath = $path;
         // This will be updated once the store has been initialised for a definition.
         $this->path = $path;
 
-        // Check if we should be storing in a single directory.
-        if (array_key_exists('singledirectory', $configuration)) {
-            $this->singledirectory = (bool)$configuration['singledirectory'];
-        } else {
-            // Default: No, we will use multiple directories.
-            $this->singledirectory = false;
-        }
+
     }
 
     /*
@@ -266,7 +247,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 	$filesize = filesize($filename);
 	$data = fread($file,$filesize);
 	fclose($file);	
-	return $data;//file_get_contents($filename);
+	return $data;
     }
 
     /**
@@ -277,7 +258,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * @param cache_definition $definition
      */
     public function initialise(cache_definition $definition) {
-        $this->definition = $definition;
+	$this->definition = $definition;
 	$hash = preg_replace('#[^a-zA-Z0-9]+#', '_', $this->definition->get_id());
         $this->path = $this->filestorepath.'/'.$hash;
         make_writable_directory($this->path);
@@ -557,10 +538,9 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * 2. Deletes the directory we created for the given definition.
      */
     public function instance_deleted() {
-
-
-
-        $this->purge_all_definitions();
+        
+	recursive_remove_directory($this->path);	
+	$this->purge_all_definitions();
         @rmdir($this->filestorepath);
     }
 

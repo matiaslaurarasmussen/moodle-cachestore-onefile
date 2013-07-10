@@ -22,5 +22,7 @@ $string['pluginname'] = 'OneFile cache';
 $string['prescan'] = 'Prescan directory';
 $string['prescan_help'] = 'If enabled the directory is scanned when the cache is first used and requests for files are first checked against the scan data. This can help if you have a slow file system and are finding that file operations are causing you a bottle neck.';
 $string['singledirectory'] = 'Single directory store';
+$string['ttl'] = 'Time-To-Live';
+$string['ttl_help'] = 'How many seconds should the cache live before it is invalidated.';
 $string['singledirectory_help'] = 'If enabled files will be cache in one single file to prevent having too many reads from the moodledata folder. This might be relevant if you have placed your datafolder on an NFS.';
 
