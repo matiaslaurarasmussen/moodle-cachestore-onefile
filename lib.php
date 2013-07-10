@@ -1,10 +1,7 @@
 <?php
 
 /**
- * The library file for the file cache store.
- *
- * This file is part of the file cache store, it contains the API for interacting with an instance of the store.
- * This is used as a default cache store within the Cache API. It should never be deleted.
+ * The library file for the onefile cache store.
  *
  * @package    cachestore_onefile
  * @category   cache
@@ -13,12 +10,7 @@
  */
 
 /**
- * The file store class.
- *
- * Configuration options
- *      path:           string: path to the cache directory, if left empty one will be created in the cache directory
- *      autocreate:     true, false
- *      prescan:        true, false
+ * The onefile store class.
  *
  * @copyright  2013 Matias Rasmussen
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -50,13 +42,6 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
     protected $filestorepath = false;
 
 
-    /**
-     * Set to true if we should store files within a single directory.
-     * By default we use a nested structure in order to reduce the chance of conflicts and avoid any file system
-     * limitations such as maximum files per directory.
-     * @var bool
-     */
-    protected $singledirectory = false;
 
     /**
      * Set to true when the path should be automatically created if it does not yet exist.
@@ -134,15 +119,14 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
         }
 
         $this->name = $name;
-        
+
+	// make directory for the cache definition        
 	$path = make_cache_directory('cachestore_onefile/'.preg_replace('#[^a-zA-Z0-9\.\-_]+#', '', $name));
         
 	$this->isready = $path !== false;
         $this->filestorepath = $path;
-        // This will be updated once the store has been initialised for a definition.
-        $this->path = $path;
-
-
+        
+	$this->path = $path;
     }
 
     /*
@@ -152,8 +136,9 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 	if($this->initialized and $this->bc_modified){
 		//  write bc array to file
 		if($this->debug) {echo "WRITING filename = {$this->bc_filename}<br>";}
-		
+		// serialize the cache array and store it in file	
 		@file_put_contents($this->bc_config_filename,serialize(  array("last_purge"=>time())   ));
+		// serialize configuration and store in config file
 		@file_put_contents($this->bc_filename,serialize( $this->bc_array));
 	} else {
 		if($this->debug){ echo "NO CACHE WRITES<br>";}
@@ -164,6 +149,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * Performs any necessary operation when the file store instance has been created.
      */
     public function instance_created() {
+	// nothing happens here..
     }
 
     /**
@@ -271,6 +257,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 		// fetch cache array
 		$data = $this->get_filedata($this->bc_filename);
 		$this->bc_array = unserialize($data);
+
 		if($this->debug) { 
 			echo $this->bc_filename . " was loaded  <br>";
 			echo "<pre>";
@@ -289,6 +276,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 
 	// open cache config file
 	if(file_exists($this->bc_config_filename)){
+		// read and unserialize the configuration file
 		$config = unserialize(file_get_contents($this->bc_config_filename));
 		$this->last_purge = $config["last_purge"];
 	} else {
@@ -311,7 +299,6 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      *
      */
     public function is_cache_stale(){
-	$tid = time();
 	return ($this->bc_ttl + $this->last_purge) < time() ;
     }
 
@@ -485,6 +472,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * @return boolean True on success. False otherwise.
      */
     public function purge() {
+	// empty the cache array
         $this->bc_array = array();
 	$this->bc_modified = true;
 	$this->last_purge = time();
@@ -538,7 +526,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * 2. Deletes the directory we created for the given definition.
      */
     public function instance_deleted() {
-        
+       	// remove everything in the cache instance folder 
 	recursive_remove_directory($this->path);	
 	$this->purge_all_definitions();
         @rmdir($this->filestorepath);
