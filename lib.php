@@ -137,9 +137,9 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 		//  write bc array to file
 		if($this->debug) {echo "WRITING filename = {$this->bc_filename}<br>";}
 		// serialize the cache array and store it in file	
-		@file_put_contents($this->bc_config_filename,serialize(  array("last_purge"=>time())   ));
+		@file_put_contents($this->bc_config_filename,serialize(  array("last_purge"=>time())   ), LOCK_EX);
 		// serialize configuration and store in config file
-		@file_put_contents($this->bc_filename,serialize( $this->bc_array));
+		@file_put_contents($this->bc_filename,serialize( $this->bc_array), LOCK_EX);
 	} else {
 		if($this->debug){ echo "NO CACHE WRITES<br>";}
 	}
