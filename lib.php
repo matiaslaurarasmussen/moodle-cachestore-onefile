@@ -257,6 +257,18 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
         return ($mode === self::MODE_APPLICATION);
     }
 
+
+    /*
+     *   Read the entire file in one single read
+     */
+    public function get_filedata($filename){
+	$file = fopen($filename,"r");
+	$filesize = filesize($filename);
+	$data = fread($file,$filesize);
+	fclose($file);	
+	return $data;//file_get_contents($filename);
+    }
+
     /**
      * Initialises the cache.
      *
@@ -276,7 +288,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 	// open the big cache
 	if(file_exists($this->bc_filename)){
 		// fetch cache array
-		$data = file_get_contents($this->bc_filename);
+		$data = $this->get_filedata($this->bc_filename);
 		$this->bc_array = unserialize($data);
 		if($this->debug) { 
 			echo $this->bc_filename . " was loaded  <br>";
@@ -309,6 +321,8 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 	// the cache has now been initialized
 	$this->initialized = true;
     }
+
+
 
 
     /**
@@ -543,6 +557,9 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * 2. Deletes the directory we created for the given definition.
      */
     public function instance_deleted() {
+
+
+
         $this->purge_all_definitions();
         @rmdir($this->filestorepath);
     }
