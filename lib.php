@@ -133,6 +133,8 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * 	Saves the global cache file
      */
     public function __destruct(){
+        
+
 	if($this->initialized and $this->bc_modified){
 		//  write bc array to file
 		if($this->debug) {echo "WRITING filename = {$this->bc_filename}<br>";}
@@ -383,30 +385,6 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
 	return true;	
     }
 
-    /**
-     * Prepares data to be stored in a file.
-     *
-     * @param mixed $data
-     * @return string
-     */
-    protected function prep_data_before_save($data) {
-        return serialize($data);
-    }
-
-    /**
-     * Prepares the data it has been read from the cache. Undoing what was done in prep_data_before_save.
-     *
-     * @param string $data
-     * @return mixed
-     * @throws coding_exception
-     */
-    protected function prep_data_after_read($data) {
-        $result = @unserialize($data);
-        if ($result === false) {
-            throw new coding_exception('Failed to unserialise data from file. Either failed to read, or failed to write.');
-        }
-        return $result;
-    }
 
     /**
      * Sets many items in the cache in a single transaction.
@@ -527,7 +505,7 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      */
     public function instance_deleted() {
        	// remove everything in the cache instance folder 
-	recursive_remove_directory($this->path);	
+	recursive_rmdir($this->path);	
 	$this->purge_all_definitions();
         @rmdir($this->filestorepath);
     }
@@ -571,17 +549,17 @@ class cachestore_onefile extends cache_store implements cache_is_key_aware, cach
      * @param string $prefix
      */
     public function find_by_prefix($prefix) {
-        $this->ensure_path_exists();
-        $prefix = preg_replace('#(\*|\?|\[)#', '[$1]', $prefix);
-        $files = glob($this->glob_keys_pattern($prefix), GLOB_MARK | GLOB_NOSORT);
-        $return = array();
-        if ($files === false) {
-            return $return;
-        }
-        foreach ($files as $file) {
-            // Trim off ".cache" from the end.
-            $return[] = substr(basename($file), 0, -6);
-        }
-        return $return;
+	$matching_keys = array();
+	
+	if($this->bc_array){
+    		$keys = array_keys($this->bc_array);
+		$pattern = "/^$prefix.+/";
+		foreach($keys as $key){
+			if(preg_match($pattern, $key)){
+				$matching_keys[] = $key;
+			}
+		}
+	}
+	return $matching_keys;
     }
 }

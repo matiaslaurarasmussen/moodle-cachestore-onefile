@@ -1,6 +1,6 @@
 <?php
  
-function recursive_remove_directory($directory, $empty=FALSE)
+function recursive_rmdir($directory, $empty=FALSE)
 {
     // if the path has a slash at the end we remove it here
     if(substr($directory,-1) == '/')
@@ -40,7 +40,7 @@ function recursive_remove_directory($directory, $empty=FALSE)
                 if(is_dir($path)) 
                 {
                     // we call this function with the new path
-                    recursive_remove_directory($path);
+                    recursive_rmdir($path);
  
                 // if the new path is a file
                 }else{
